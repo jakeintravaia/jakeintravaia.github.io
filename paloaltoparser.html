@@ -41,10 +41,6 @@
             margin-bottom: 20px;
         }
         
-        .warnings{
-            color: var(--sp-red);
-        }
-        
         .container{
             display: flex;
             align-items: center;
@@ -117,6 +113,30 @@
             text-align: left;
             border: 1px solid #777 !important; 
         }
+
+        .warnings{
+            background: #ffabab;
+            box-shadow: 0px 0px 10px rgb(255, 0, 0);
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #3f0000;
+            opacity: 0;
+        }
+
+        .fadein{
+            animation: fadeIn 400ms ease-in-out forwards;
+        }
+
+        @keyframes fadeIn{
+            0%{
+                opacity: 0;
+            }
+
+            100%{
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -187,6 +207,7 @@
             constructor() {
                 this.warningsContainer = document.getElementById('warnings');
                 this.warningsContainer.innerHTML = '';
+                this.warningsContainer.classList.add('fadein');
             }
 
             addWarning(message) {
@@ -247,6 +268,12 @@
 
                 if (!this.validateLength(headers, dataPoints)) {
                     this.warnings.lengthWarning(headers, dataPoints);
+                }
+
+                if(this.warnings.warningsContainer.childElementCount == 0)
+                {
+                    this.warnings.warningsContainer.classList.remove('fadein');
+                    this.warnings.warningsContainer.style.opacity = 0;
                 }
             }
         }
