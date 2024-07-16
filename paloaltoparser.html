@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto CSV Formatter</title>
+    <style>
+        :root{
+            --background-color: #171E2B;
+            --primary-color: #006072;
+            --lb-tint1: #008995;
+            --lb-tint2: #00AFAB;
+            --lb-tint3: #3CD5AF;
+            --db-tint1: #1C1F2A;
+            --db-tint2: #253746;
+            --db-tint3: #0045AF;
+            --sp-blue: #2292D6;
+            --sp-green: #00B588;
+            --sp-yellow: #FFC845;
+            --sp-red: #CF484B;
+        }
+        
+        body{
+            background: var(--background-color);
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2{
+            font-weight: 100;
+        }
+
+        .tool-container{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 275px;
+            margin-bottom: 20px;
+        }
+        
+        .warnings{
+            color: var(--sp-red);
+        }
+        
+        .container{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .container textarea{
+            background: white;
+            padding: 5px;
+            color: black;
+            border-radius: 5px;
+        }
+        
+        .container textarea:focus{
+            outline: none;
+            box-shadow: 0px 0px 10px var(--lb-tint3);
+        }
+        
+        .container button{
+            width: 300px;
+            height: 50px;
+            border: 1px solid #fff;
+            background: none;
+            border-radius: 5px;
+            font-size: 15px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 100ms ease-in-out;
+        }
+        
+        .formatLabel{
+            margin-bottom: 10px;
+        }
+        
+        #formatSelect{
+            width: 300px;
+            height: 50px;
+            font-size: 15px;
+            background: none;
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 15px;
+        }
+        
+        #formatSelect:focus{
+            outline: none;
+            box-shadow: 0px 0px 10px var(--lb-tint3);
+        }
+        
+        .container button:hover{
+            transform: scale(1.05);
+        }
+        
+        .container button:active{
+            transform: scale(0.95);
+        }
+        
+        .table{
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #777 !important; 
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #777 !important; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-container">
+            <img src="palo_alto.png"></img>
+            <span>|</span>
+            <p>CSV Formatter</p>
+        </div>
+        <textarea id="csvInput" rows="5" cols="100" placeholder="Enter CSV data here..."></textarea>
+        <br><br>
+        <label for="formatSelect" class="formatLabel">Select Format:</label>
+        <select id="formatSelect">
+            <option value="FIREWALL">Firewall</option>
+            <option value="IDS">IDS/IPS</option>
+        </select>
+        <br><br>
+        <button onclick="generateTable()">Generate Table</button>
+        <br><br>
+        <div id="warnings" class="warnings"></div>
+        <div id="tableContainer"></div>
+    </div>
+
+    <script>
+        const csvIdsHeaders = [
+            "Receive Time", "Serial Number", "Type", "Threat/Content Type", "FUTURE_USE", 
+            "Generated Time", "Source Address", "Destination Address", "NAT Source IP", 
+            "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
+            "Application", "Virtual System", "Source Zone", "Destination Zone", 
+            "Inbound Interface", "Outbound Interface", "Log Action", "FUTURE_USE", 
+            "Session ID", "Repeat Count", "Source Port", "Destination Port", 
+            "NAT Source Port", "NAT Destination Port", "Flags", "Protocol", "Action", 
+            "URL/Filename", "Threat ID", "Category", "Severity", "Direction", 
+            "Sequence Number", "Action Flags", "Source Location", "Destination Location", 
+            "FUTURE_USE", "Content Type", "PCAP_ID", "File Digest", "Cloud", "URL Index", 
+            "User Agent", "File Type", "X-Forwarded-For", "Referer", "Sender", "Subject", 
+            "Recipient", "Report ID", "Device Group Hierarchy Level 1", 
+            "Device Group Hierarchy Level 2", "Device Group Hierarchy Level 3", 
+            "Device Group Hierarchy Level 4", "Virtual System Name", "Device Name", 
+            "FUTURE_USE", "Source VM UUID", "Destination VM UUID", "HTTP Method", 
+            "Tunnel ID/IMSI", "Monitor Tag/IMEI", "Parent Session ID", "Parent Start Time", 
+            "Tunnel Type", "Threat Category", "Content Version", "FUTURE_USE", 
+            "SCTP Association ID", "Payload Protocol ID", "HTTP Headers", 
+            "URL Category List", "Rule UUID", "HTTP/2 Connection", "Dynamic User Group Name"
+        ]; 
+
+        const csvFirewallHeaders = [
+            "Receive Time", "Serial Number", "Type", "Threat/Content Type", "FUTURE_USE", 
+            "Generated Time", "Source Address", "Destination Address", "NAT Source IP", 
+            "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
+            "Application", "Virtual System", "Source Zone", "Destination Zone", 
+            "Inbound Interface", "Outbound Interface", "Log Action", "FUTURE_USE", 
+            "Session ID", "Repeat Count", "Source Port", "Destination Port", 
+            "NAT Source Port", "NAT Destination Port", "Flags", "Protocol", "Action", 
+            "Bytes", "Bytes Sent", "Bytes Received", "Packets", "Start Time", 
+            "Elapsed Time", "Category", "FUTURE_USE", "Sequence Number", "Action Flags", 
+            "Source Location", "Destination Location", "FUTURE_USE", "Packets Sent", 
+            "Packets Received", "Session End Reason", "Device Group Hierarchy Level 1", 
+            "Device Group Hierarchy Level 2", "Device Group Hierarchy Level 3", 
+            "Device Group Hierarchy Level 4", "Virtual System Name", "Device Name", 
+            "Action Source", "Source VM UUID", "Destination VM UUID", "Tunnel ID/IMSI", 
+            "Monitor Tag/IMEI", "Parent Session ID", "Parent Start Time", "Tunnel Type", 
+            "SCTP Association ID", "SCTP Chunks", "SCTP Chunks Sent", "SCTP Chunks Received", 
+            "UUID for rule", "HTTP/2 Connection"
+        ];
+
+        class Warnings {
+            constructor() {
+                this.warningsContainer = document.getElementById('warnings');
+                this.warningsContainer.innerHTML = '';
+            }
+
+            addWarning(message) {
+                const warning = document.createElement('p');
+                warning.textContent = message;
+                this.warningsContainer.appendChild(warning);
+            }
+
+            typeWarning(logType, dataPoints, expectedType) {
+                this.addWarning(`WARNING: Log supplied does not seem to be ${logType} generated. Type: ${dataPoints[2]} does not match expected Type: ${expectedType}.`);
+            }
+
+            formatWarning() {
+                this.addWarning("WARNING: RegEx pattern of first inputted data point does not match expected format (YYYY/MM/DD HR:MM:SS). Please ensure log is entered correctly, with the receive time being the first data point.");
+            }
+
+            lengthWarning(headers, dataPoints) {
+                this.addWarning(`WARNING: Length of supplied log is larger than associated known data headers. Some data points will not be printed with associated headers. (${headers.length} headers, ${dataPoints.length} data points, ${dataPoints.length - headers.length} unprinted data points)`);
+            }
+        }
+
+        class Validator {
+            constructor() {
+                this.warnings = new Warnings();
+            }
+
+            validateReceiveTime(dataPoints) {
+                const datePattern = /\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}/;
+                return datePattern.test(dataPoints[0]);
+            }
+
+            validateIdsLog(dataPoints) {
+                return dataPoints[2] === "THREAT";
+            }
+
+            validateFirewallLog(dataPoints) {
+                return dataPoints[2] === "TRAFFIC";
+            }
+
+            validateLength(headers, dataPoints) {
+                return dataPoints.length <= headers.length;
+            }
+
+            validate(headers, dataPoints, logType, expectedType) {
+                if (expectedType === "TRAFFIC") {
+                    if (!this.validateFirewallLog(dataPoints)) {
+                        this.warnings.typeWarning(logType, dataPoints, expectedType);
+                    }
+                } else if (expectedType === "THREAT") {
+                    if (!this.validateIdsLog(dataPoints)) {
+                        this.warnings.typeWarning(logType, dataPoints, expectedType);
+                    }
+                }
+
+                if (!this.validateReceiveTime(dataPoints)) {
+                    this.warnings.formatWarning();
+                }
+
+                if (!this.validateLength(headers, dataPoints)) {
+                    this.warnings.lengthWarning(headers, dataPoints);
+                }
+            }
+        }
+
+        function generateTable() {
+            let csvInput = document.getElementById('csvInput').value;
+            let formatSelect = document.getElementById('formatSelect').value;
+            let dataPoints = csvInput.trim().split(',');
+
+            let headers;
+            if (formatSelect === 'IDS') {
+                headers = csvIdsHeaders;
+            } else if (formatSelect === 'FIREWALL') {
+                headers = csvFirewallHeaders;
+            }
+
+            const validator = new Validator();
+            validator.validate(headers, dataPoints, formatSelect, formatSelect === 'IDS' ? 'THREAT' : 'TRAFFIC');
+
+            let tableHTML = '<table>';
+            headers.forEach((header, index) => {
+                tableHTML += '<tr>';
+                tableHTML += `<th>${header}</th>`;
+                tableHTML += `<td>${dataPoints[index] ? dataPoints[index].trim() : ''}</td>`;
+                tableHTML += '</tr>';
+            });
+            tableHTML += '</table>';
+
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+
+        function parseURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const csv = urlParams.get('csv');
+            const type = urlParams.get('type');
+
+            if (csv) {
+                document.getElementById('csvInput').value = csv;
+
+                const dataPoints = csv.trim().split(',');
+                if (dataPoints[2] === "THREAT") {
+                    document.getElementById('formatSelect').value = 'IDS';
+                } else if (dataPoints[2] === "TRAFFIC") {
+                    document.getElementById('formatSelect').value = 'FIREWALL';
+                }
+
+                setTimeout(() => { generateTable(); }, 100);
+            }
+        }
+
+        window.onload = parseURLParams;
+    </script>
+</body>
+</html>
