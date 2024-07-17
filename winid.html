@@ -156,6 +156,28 @@
             return null;
         }
 
+    document.addEventListener('DOMContentLoaded', () => {
+    const queryParams = getQueryParams();
+
+    if (queryParams.ids) {
+        const searchBar = document.getElementById('searchBar');
+        searchBar.value = queryParams.ids;
+        filterEvents();  // Trigger the filter function based on the URL parameters
+    }
+    });
+
+    function getQueryParams() {
+    const params = {};
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+
+    for (const [key, value] of urlParams.entries()) {
+        params[key] = value;
+    }
+
+    return params;
+    }
+
     function createEventItem(code, delay) {
     // Check if the code exists in the codeDict
     if (!codeDict.hasOwnProperty(code)) return null;
