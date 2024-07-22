@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0051)https://jakeintravaia.github.io/paloaltoparser.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palo Alto CSV Formatter</title>
     <style>
@@ -142,7 +142,7 @@
 <body>
     <div class="container">
         <div class="tool-container">
-            <img src="palo_alto.png" height="25px"></img>
+            <img src="./Palo Alto CSV Formatter_files/palo_alto.png" height="25px">
             <span>|</span>
             <p>CSV Formatter</p>
         </div>
@@ -162,9 +162,9 @@
 
     <script>
         const csvIdsHeaders = [
-            "Receive Time", "Serial Number", "Type", "Threat/Content Type", "FUTURE_USE", 
-            "Generated Time", "Source Address", "Destination Address", "NAT Source IP", 
-            "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
+            "FUTURE_USE", "Receive Time", "Serial Number", "Type", "Threat/Content Type",
+            "FUTURE_USE", "Generated Time", "Source Address", "Destination Address",
+            "NAT Source IP", "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
             "Application", "Virtual System", "Source Zone", "Destination Zone", 
             "Inbound Interface", "Outbound Interface", "Log Action", "FUTURE_USE", 
             "Session ID", "Repeat Count", "Source Port", "Destination Port", 
@@ -184,9 +184,9 @@
         ]; 
 
         const csvFirewallHeaders = [
-            "Receive Time", "Serial Number", "Type", "Threat/Content Type", "FUTURE_USE", 
-            "Generated Time", "Source Address", "Destination Address", "NAT Source IP", 
-            "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
+            "FUTURE_USE", "Receive Time", "Serial Number", "Type", "Threat/Content Type",
+            "FUTURE_USE", "Generated Time", "Source Address", "Destination Address",
+            "NAT Source IP", "NAT Destination IP", "Rule Name", "Source User", "Destination User", 
             "Application", "Virtual System", "Source Zone", "Destination Zone", 
             "Inbound Interface", "Outbound Interface", "Log Action", "FUTURE_USE", 
             "Session ID", "Repeat Count", "Source Port", "Destination Port", 
@@ -236,15 +236,15 @@
 
             validateReceiveTime(dataPoints) {
                 const datePattern = /\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}/;
-                return datePattern.test(dataPoints[0]);
+                return datePattern.test(dataPoints[1]);
             }
 
             validateIdsLog(dataPoints) {
-                return dataPoints[2] === "THREAT";
+                return dataPoints[3] === "THREAT";
             }
 
             validateFirewallLog(dataPoints) {
-                return dataPoints[2] === "TRAFFIC";
+                return dataPoints[3] === "TRAFFIC";
             }
 
             validateLength(headers, dataPoints) {
@@ -326,5 +326,6 @@
 
         window.onload = parseURLParams;
     </script>
-</body>
-</html>
+
+
+</body></html>
